@@ -1,0 +1,58 @@
+{
+  "name": "nightjet-notify",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/material": "^5.15.10",
+    "@mui/x-date-pickers": "^6.19.4",
+    "@tanstack/react-query": "^5.20.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/node": "^20.11.19",
+    "@types/nodemailer": "^6.4.17",
+    "axios": "^1.6.7",
+    "cors": "^2.8.5",
+    "date-fns": "^2.30.0",
+    "express": "^5.1.0",
+    "nodemailer": "^6.10.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.57",
+    "@types/react-dom": "^18.2.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "tsx": "^4.19.3",
+    "vite": "^5.1.3"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "server": "tsx src/server/index.ts"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
