@@ -1,0 +1,120 @@
+service: nightjet-notify
+
+frameworkVersion: '3'
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: eu-central-1
+  environment:
+    ALERTS_TABLE: ${self:service}-alerts-${sls:stage}
+    # For local development, use .env file
+    # For production, use SSM parameters
+    SMTP_FROM: ${ssm:/nightjet-notify/${sls:stage}/smtp/from, env:SMTP_FROM, 'alerts@nightjet-notify.com'}
+    FRONTEND_URL: ${ssm:/nightjet-notify/${sls:stage}/frontend/url, env:FRONTEND_URL, 'http://localhost:3000'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            - dynamodb:UpdateItem
+          Resource: 
+            - "arn:aws:dynamodb:${self:provider.region}:*:table/${self:service}-alerts-${sls:stage}"
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+
+plugins:
+  - serverless-dynamodb
+  - serverless-offline
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    external: ['@aws-sdk/client-dynamodb', '@aws-sdk/lib-dynamodb', '@aws-sdk/client-ses', 'util']
+    exclude: []
+    target: 'node18'
+    platform: 'node'
+    concurrency: 10
+    watch:
+      pattern: ['src/**/*.ts']
+      ignore: ['temp/**/*']
+    packager: 'yarn'
+    format: 'cjs'
+    define:
+      'process.env.NODE_ENV': "'development'"
+  serverless-offline:
+    httpPort: 3001
+    lambdaPort: 3003
+    noPrependStageInUrl: true
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: '200m'
+      heapMax: '1g'
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+    seed:
+      alerts:
+        sources:
+          - table: ${self:service}-alerts-${sls:stage}
+            sources: [seeds/alerts.json]
+
+functions:
+  # API endpoints
+  createAlert:
+    handler: src/serverless/handlers/alerts.createAlert
+    events:
+      - httpApi:
+          path: /alerts
+          method: post
+
+  getAlerts:
+    handler: src/serverless/handlers/alerts.getAlerts
+    events:
+      - httpApi:
+          path: /alerts
+          method: get
+
+  deleteAlert:
+    handler: src/serverless/handlers/alerts.deleteAlert
+    events:
+      - httpApi:
+          path: /alerts/{id}
+          method: delete
+
+  # Daily check for available tickets
+  checkAlerts:
+    handler: src/serverless/handlers/alerts.checkAlerts
+    events:
+      - schedule: rate(1 hour)
+
+resources:
+  Resources:
+    AlertsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-alerts-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        SSESpecification:
+          SSEEnabled: true 

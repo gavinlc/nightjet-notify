@@ -1,0 +1,22 @@
+[
+    {
+        "id": "test-alert-1",
+        "email": "test@example.com",
+        "trainNumber": "NJ123",
+        "from": "Wien",
+        "to": "München",
+        "date": "01012024",
+        "createdAt": "2023-12-01T12:00:00.000Z",
+        "lastChecked": "2023-12-01T12:00:00.000Z"
+    },
+    {
+        "id": "test-alert-2",
+        "email": "test2@example.com",
+        "trainNumber": "NJ456",
+        "from": "München",
+        "to": "Wien",
+        "date": "01012024",
+        "createdAt": "2023-12-01T12:00:00.000Z",
+        "lastChecked": "2023-12-01T12:00:00.000Z"
+    }
+]

@@ -24,10 +24,19 @@
             "node",
             "react",
             "react-dom"
-        ]
+        ],
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "src/webapp/*"
+            ],
+            "@shared/*": [
+                "src/shared/*"
+            ]
+        }
     },
     "include": [
-        "src"
+        "src/webapp"
     ],
     "references": [
         {
