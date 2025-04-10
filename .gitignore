@@ -6,3 +6,9 @@ dist-ssr
 
 .dynamodb
 dynamodb_local_latest.tar.gz
+
+.esbuild
+.serverless
+
+.env.*
+!.env.example

@@ -8,7 +8,7 @@ provider:
   name: aws
   runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
-  region: eu-central-1
+  region: eu-west-2
   environment:
     ALERTS_TABLE: ${self:service}-alerts-${sls:stage}
     # For local development, use .env file
@@ -32,13 +32,41 @@ provider:
             - ses:SendEmail
             - ses:SendRawEmail
           Resource: "*"
+        # - Effect: Allow
+        #   Action:
+        #     - s3:PutObject
+        #     - s3:GetObject
+        #     - s3:ListBucket
+        #     - s3:DeleteObject
+        #   Resource:
+        #     - "arn:aws:s3:::${self:service}-webapp-${sls:stage}/*"
+        #     - "arn:aws:s3:::${self:service}-webapp-${sls:stage}"
 
 plugins:
+  - serverless-s3-sync
   - serverless-dynamodb
-  - serverless-offline
+  - serverless-domain-manager
   - serverless-esbuild
-
+  - serverless-offline
+  
 custom:
+  customDomain:
+    domainName: api.nightjet-notify.com
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    apiType: rest
+    createApexRecord: false
+    hostedZoneId: ${ssm:/nightjet-notify/${sls:stage}/hosted-zone-id, ''}
+    certificateName: '*.nightjet-notify.com'
+    certificateArn: ${ssm:/nightjet-notify/${sls:stage}/certificate-arn, ''}
+  s3Sync:
+    - bucketName: ${self:service}-webapp-${sls:stage}
+      localDir: dist
+      deleteRemoved: true
+      followSymlinks: true
   esbuild:
     bundle: true
     minify: false
@@ -79,21 +107,21 @@ functions:
   createAlert:
     handler: src/serverless/handlers/alerts.createAlert
     events:
-      - httpApi:
+      - http:
           path: /alerts
           method: post
 
   getAlerts:
     handler: src/serverless/handlers/alerts.getAlerts
     events:
-      - httpApi:
+      - http:
           path: /alerts
           method: get
 
   deleteAlert:
     handler: src/serverless/handlers/alerts.deleteAlert
     events:
-      - httpApi:
+      - http:
           path: /alerts/{id}
           method: delete
 
@@ -117,4 +145,84 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         SSESpecification:
-          SSEEnabled: true 
+          SSEEnabled: true
+    WebappBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-webapp-${sls:stage}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ['*']
+              AllowedMethods: [GET, HEAD]
+              AllowedOrigins: ['*']
+              MaxAge: 3000
+    # WebappBucketPolicy:
+    #   Type: AWS::S3::BucketPolicy
+    #   Properties:
+    #     Bucket: !Ref WebappBucket
+    #     PolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal: '*'
+    #           Action: s3:GetObject
+    #           Resource: !Join ['', [!GetAtt WebappBucket.Arn, '/*']]
+    CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          DefaultRootObject: index.html
+          Origins:
+            - DomainName: !GetAtt WebappBucket.RegionalDomainName
+              Id: S3Origin
+              S3OriginConfig:
+                OriginAccessIdentity: ''
+              OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+          DefaultCacheBehavior:
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # CachingOptimized
+            OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf  # CORS-S3Origin
+          ViewerCertificate:
+            AcmCertificateArn: ${ssm:/nightjet-notify/${sls:stage}/certificate-arn, ''}
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          Aliases:
+            - nightjet-notify.com
+    CloudFrontOriginAccessControl:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties:
+        OriginAccessControlConfig:
+          Name: ${self:service}-oac-${sls:stage}
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+    # WebappBucketOACPolicy:
+    #   Type: AWS::S3::BucketPolicy
+    #   Properties:
+    #     Bucket: !Ref WebappBucket
+    #     PolicyDocument:
+    #       Version: '2012-10-17'
+    #       Statement:
+    #         - Effect: Allow
+    #           Principal:
+    #             Service: cloudfront.amazonaws.com
+    #           Action: s3:GetObject
+    #           Resource: !Join ['', [!GetAtt WebappBucket.Arn, '/*']]
+    #           Condition:
+    #             StringEquals:
+    #               AWS:SourceArn: !Join ['', ['arn:aws:cloudfront::', !Ref 'AWS::AccountId', ':distribution/', !Ref CloudFrontDistribution]]
+
+  Outputs:
+    WebappBucketName:
+      Value: !Ref WebappBucket
+    # CloudFrontDistributionId:
+    #   Value: !Ref CloudFrontDistribution
+    # CloudFrontDomainName:
+    #   Value: !GetAtt CloudFrontDistribution.DomainName 

@@ -9,7 +9,7 @@ import {
     Box,
     Typography,
 } from '@mui/material';
-import { Connection } from '../services/api';
+import { Connection } from '@shared/services/api';
 import { createAlert } from '../services/alertService';
 import { format } from 'date-fns';
 

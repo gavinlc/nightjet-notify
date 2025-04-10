@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:shared": "tsc -p tsconfig.shared.json && cp dist/api.d.ts src/shared/services/",
+    "build": "yarn build:shared && tsc && vite build",
     "preview": "vite preview",
     "serverless:dev": "cross-env IS_OFFLINE=true serverless offline start --stage dev",
-    "serverless:deploy": "serverless deploy --stage prod"
+    "serverless:deploy": "yarn build && serverless deploy --stage prod"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.782.0",
+    "@aws-sdk/client-s3": "^3.0.0",
     "@aws-sdk/client-ses": "^3.782.0",
     "@aws-sdk/lib-dynamodb": "^3.782.0",
     "@emotion/react": "^11.11.3",
@@ -24,7 +26,6 @@
     "date-fns": "^2.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "serverless-dynamodb": "^0.2.56",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
@@ -35,10 +36,13 @@
     "@types/uuid": "^9.0.8",
     "@vitejs/plugin-react": "^4.2.1",
     "cross-env": "^7.0.3",
-    "serverless": "^3.40.0",
+    "serverless": "^3.38.0",
+    "serverless-domain-manager": "^8.0.0",
     "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-dynamodb": "^0.2.56",
     "serverless-esbuild": "^1.55.0",
     "serverless-offline": "^13.3.3",
+    "serverless-s3-sync": "^3.4.0",
     "typescript": "^5.2.2",
     "vite": "^5.1.0"
   },

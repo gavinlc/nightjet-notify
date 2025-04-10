@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_ROOT } from '../config';
 
 export interface Alert {
     id?: string;
@@ -11,7 +12,7 @@ export interface Alert {
     lastChecked?: Date;
 }
 
-const API_URL = 'http://localhost:3001/alerts';
+const API_URL = `${API_ROOT}/alerts`;
 
 export async function createAlert(alert: Omit<Alert, 'id' | 'createdAt' | 'lastChecked'>): Promise<Alert> {
     const response = await fetch(API_URL, {
@@ -30,7 +31,7 @@ export async function createAlert(alert: Omit<Alert, 'id' | 'createdAt' | 'lastC
 }
 
 export const checkAlerts = async (): Promise<Alert[]> => {
-    const response = await axios.get('http://localhost:3001/alerts/check');
+    const response = await axios.get(`${API_URL}/check`);
     return response.data;
 };
 

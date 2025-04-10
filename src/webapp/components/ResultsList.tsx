@@ -12,7 +12,7 @@ import {
     Box,
     Button,
 } from '@mui/material';
-import { Connection, TrainOffer } from '../services/api';
+import { Connection, TrainOffer } from '@shared/services/api';
 import { format } from 'date-fns';
 import { AlertSignup } from './AlertSignup';
 
