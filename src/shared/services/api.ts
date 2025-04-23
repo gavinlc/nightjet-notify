@@ -1,81 +1,97 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = "https://api.nightjet-notify.com/proxy";
 
 export interface Station {
-    number: number;
-    meta: string;
-    name: string;
-    latitude: number;
-    longitude: number;
+  number: number;
+  meta: string;
+  name: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface Connection {
-    trains: TrainConnection[];
-    from: {
-        number: string;
-        name: string;
-    };
-    to: {
-        number: string;
-        name: string;
-    };
+  trains: TrainConnection[];
+  from: {
+    number: string;
+    name: string;
+  };
+  to: {
+    number: string;
+    name: string;
+  };
 }
 
 export interface TrainConnection {
-    train: string;
-    arrival: {
-        utc: number;
-        local: string
-    };
-    departure: {
-        utc: number;
-        local: string;
-    };
-    seatAsIc: boolean;
-    trainType: string;
+  train: string;
+  arrival: {
+    utc: number;
+    local: string;
+  };
+  departure: {
+    utc: number;
+    local: string;
+  };
+  seatAsIc: boolean;
+  trainType: string;
 }
 
-
 export interface Ticket {
-    name: string;
-    price: number;
+  name: string;
+  price: number;
 }
 
 export interface TrainOffer {
-    departure: string;
-    arrival: string;
-    bestOffers: {
-        be?: Ticket;
-        le?: Ticket;
-        se?: Ticket;
-    };
+  departure: string;
+  arrival: string;
+  bestOffers: {
+    be?: Ticket;
+    le?: Ticket;
+    se?: Ticket;
+  };
 }
 
 export const searchStations = async (query: string): Promise<Station[]> => {
-    const response = await axios.get(`${API_BASE_URL}/stations/find`, {
-        params: {
-            name: query,
-            lang: 'en',
-            t: Date.now()
-        }
-    });
-    return response.data;
+  const response = await axios.get(`${API_BASE_URL}/stations/find`, {
+    // headers: {
+    //     'Host': 'www.nightjet.com',
+    // },
+    params: {
+      name: query,
+      lang: "en",
+      t: Date.now(),
+    },
+  });
+  return response.data;
 };
 
-export const searchConnections = async (from: string, to: string, date: string): Promise<Connection[]> => {
-    const response = await axios.get(`${API_BASE_URL}/connection/${from}/${to}/${date}`);
-    return response.data.connections;
+export const searchConnections = async (
+  from: string,
+  to: string,
+  date: string
+): Promise<Connection[]> => {
+  const response = await axios.get(
+    `${API_BASE_URL}/connection/${from}/${to}/${date}`
+  );
+  return response.data.connections;
 };
 
-export const getTrainOffers = async (trainName: string, from: string, to: string, timestamp: number): Promise<TrainOffer> => {
-    const response = await axios.get(`${API_BASE_URL}/destinations/offers/${trainName}/${from}/${to}/${timestamp}`);
-    return response.data[0];
+export const getTrainOffers = async (
+  trainName: string,
+  from: string,
+  to: string,
+  timestamp: number
+): Promise<TrainOffer> => {
+  const response = await axios.get(
+    `${API_BASE_URL}/destinations/offers/${trainName}/${from}/${to}/${timestamp}`
+  );
+  return response.data[0];
 };
 
 export default axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Referer': 'https://www.nightjet.com/'
-    }
-}); 
+  baseURL: API_BASE_URL,
+  headers: {
+    Referer: "https://www.nightjet.com/",
+    "X-Host": "www.nightjet.com",
+  },
+});

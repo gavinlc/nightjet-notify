@@ -4,11 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "yarn serverless:dev & vite",
     "build:shared": "tsc -p tsconfig.shared.json && cp dist/api.d.ts src/shared/services/",
     "build": "yarn build:shared && tsc && vite build",
     "preview": "vite preview",
-    "serverless:dev": "cross-env IS_OFFLINE=true serverless offline start --stage dev",
+    "serverless:dev": "cross-env IS_OFFLINE=true serverless offline start --stage dev --nos3sync",
     "serverless:deploy": "yarn build && serverless deploy --stage prod"
   },
   "dependencies": {
@@ -23,6 +23,7 @@
     "@mui/x-date-pickers": "^6.18.6",
     "@tanstack/react-query": "^5.20.5",
     "aws-sdk": "^2.1565.0",
+    "axios": "^1.8.4",
     "date-fns": "^2.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

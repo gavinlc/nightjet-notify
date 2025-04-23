@@ -20,15 +20,15 @@ export default defineConfig({
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },
-            '/api': {
-                target: 'https://www.nightjet.com/nj-booking-ocp',
-                changeOrigin: true,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                rewrite: (path) => path.replace(/^\/api/, ''),
-            },
+            // '/api': {
+            //     target: 'https://www.nightjet.com/nj-booking-ocp',
+            //     changeOrigin: true,
+            //     headers: {
+            //         'Accept': 'application/json',
+            //         'Content-Type': 'application/json',
+            //     },
+            //     rewrite: (path) => path.replace(/^\/api/, ''),
+            // },
         }
     },
     build: {
